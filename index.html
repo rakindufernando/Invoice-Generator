@@ -60,7 +60,8 @@
             <label class="field"><span>Currency</span><select id="currency"><option value="LKR">LKR, Rs.</option><option value="USD">USD, $</option><option value="EUR">EUR, €</option><option value="GBP">GBP, £</option><option value="AUD">AUD, A$</option><option value="CAD">CAD, C$</option><option value="INR">INR, ₹</option></select></label>
             <label class="field"><span>Issue date and time <b>*</b></span><input id="issueDate" type="datetime-local" required></label>
             <label class="field"><span>Due date</span><input id="dueDate" type="date"></label>
-            <label class="field"><span>Payment status</span><select id="status"><option value="Draft">Draft</option><option value="Unpaid" selected>Unpaid</option><option value="Partially paid">Partially paid</option><option value="Paid">Paid</option></select></label>
+            <label class="field"><span>Status control</span><select id="statusMode"><option value="automatic" selected>Update automatically</option><option value="manual">Change manually</option></select></label>
+            <label class="field"><span>Payment status</span><select id="status"><option value="Draft">Draft</option><option value="Unpaid" selected>Unpaid</option><option value="Partially paid">Partially paid</option><option value="Paid">Paid</option></select><small class="field-hint" id="statusHint">Status changes automatically from the paid amount.</small></label>
             <label class="field"><span>Payment method</span><select id="paymentMethod"><option value="Bank transfer">Bank transfer</option><option value="Cash">Cash</option><option value="Card">Card</option><option value="Online payment">Online payment</option><option value="Other">Other</option></select></label>
           </div>
         </fieldset>
@@ -73,16 +74,12 @@
         </fieldset>
 
         <fieldset class="form-section">
-          <legend><span>4</span> Totals and payment</legend>
+          <legend><span>4</span> Payment</legend>
           <div class="field-grid two-columns">
-            <label class="field"><span>Discount type</span><select id="discountType"><option value="percentage">Percentage</option><option value="fixed">Fixed amount</option></select></label>
-            <label class="field"><span>Discount</span><input id="discountValue" type="number" min="0" step="0.01" value="0"></label>
-            <label class="field"><span>Tax percentage</span><input id="taxPercent" type="number" min="0" max="100" step="0.01" value="0"></label>
-            <label class="field"><span>Shipping or additional fee</span><input id="shipping" type="number" min="0" step="0.01" value="0"></label>
             <label class="field"><span>Amount paid</span><input id="amountPaid" type="number" min="0" step="0.01" value="0"></label>
           </div>
           <div class="editor-totals">
-            <p><span>Subtotal</span><strong id="editorSubtotal">Rs. 0.00</strong></p><p><span>Discount</span><strong id="editorDiscount">Rs. 0.00</strong></p><p><span>Tax</span><strong id="editorTax">Rs. 0.00</strong></p><p><span>Shipping</span><strong id="editorShipping">Rs. 0.00</strong></p><p class="grand-total"><span>Total</span><strong id="editorTotal">Rs. 0.00</strong></p><p class="balance"><span>Balance due</span><strong id="editorBalance">Rs. 0.00</strong></p>
+            <p><span>Subtotal</span><strong id="editorSubtotal">Rs. 0.00</strong></p><p class="grand-total"><span>Total</span><strong id="editorTotal">Rs. 0.00</strong></p><p><span>Amount paid</span><strong id="editorPaid">Rs. 0.00</strong></p><p class="balance"><span>Balance due</span><strong id="editorBalance">Rs. 0.00</strong></p>
           </div>
         </fieldset>
 
@@ -105,7 +102,7 @@
         <header class="invoice-header"><div class="invoice-brand"><img id="previewLogo" src="assets/W_Family_Logo_Enhanced.svg" alt="Weerahannadige Family logo"><div><h2 id="previewBusinessName">WEERAHANNADIGE FAMILY</h2><p id="previewBusinessDetails"></p></div></div><div class="invoice-title"><h2>E-RECEIPT</h2><span id="previewStatus" class="status-badge unpaid">Unpaid</span></div></header>
         <section class="invoice-meta"><div><span>Billed to</span><strong id="previewCustomerName">Customer name</strong><p id="previewCustomerDetails"></p><span class="billed-by-label">Billed by</span><strong id="previewBilledBy">Rohan Ferando</strong></div><dl><div><dt>Receipt number</dt><dd id="previewInvoiceNumber"></dd></div><div><dt>Issue date and time</dt><dd id="previewIssueDate"></dd></div><div><dt>Due date</dt><dd id="previewDueDate"></dd></div></dl></section>
         <div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody id="previewItems"></tbody></table></div>
-        <section class="invoice-summary"><div class="payment-info"><span>Payment method</span><strong id="previewPaymentMethod"></strong></div><div class="summary-lines"><p><span>Subtotal</span><strong id="previewSubtotal"></strong></p><p id="previewDiscountRow"><span>Discount</span><strong id="previewDiscount"></strong></p><p id="previewTaxRow"><span>Tax</span><strong id="previewTax"></strong></p><p id="previewShippingRow"><span>Shipping</span><strong id="previewShipping"></strong></p><p class="invoice-total"><span>Total</span><strong id="previewTotal"></strong></p><p id="previewPaidRow"><span>Paid</span><strong id="previewPaid"></strong></p><p class="invoice-balance"><span>Balance due</span><strong id="previewBalance"></strong></p></div></section>
+        <section class="invoice-summary"><div class="payment-info"><span>Payment method</span><strong id="previewPaymentMethod"></strong></div><div class="summary-lines"><p><span>Subtotal</span><strong id="previewSubtotal"></strong></p><p class="invoice-total"><span>Total</span><strong id="previewTotal"></strong></p><p><span>Paid</span><strong id="previewPaid"></strong></p><p class="invoice-balance"><span>Balance due</span><strong id="previewBalance"></strong></p></div></section>
         <section class="invoice-notes" id="previewNotesSection"><span>Notes</span><p id="previewNotes"></p></section><section class="invoice-notes" id="previewTermsSection"><span>Terms</span><p id="previewTerms"></p></section>
         <section class="signature-block"><span>E Signature</span><strong id="previewSignatureName">Rohan Ferando</strong></section>
         <footer><img src="assets/BUMBI_LOGO.svg" alt="Bumbi Software Solutions logo"><span>POWERED BY BUMBI SOFTWARE SOLUTIONS</span></footer>

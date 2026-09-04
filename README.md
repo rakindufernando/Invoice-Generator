@@ -11,7 +11,8 @@ A responsive browser-based e-receipt generator that creates professional, multi-
 - Billed-by and E Signature details
 - Current issue date and time with manual editing
 - Dynamic receipt items and automatic totals
-- Percentage or fixed discounts, tax, shipping and balance due
+- Manual or payment-based automatic receipt status
+- Paid amount and balance due tracking
 - Draft autosave and saved receipt management in the browser
 - JSON import and export for backups
 - Print-ready layout

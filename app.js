@@ -10,8 +10,8 @@
   const fieldIds = [
     "businessName", "billedBy", "businessEmail", "businessPhone", "taxNumber", "businessAddress",
     "customerName", "customerEmail", "customerAddress", "invoiceNumber", "currency",
-    "issueDate", "dueDate", "status", "paymentMethod", "discountType", "discountValue",
-    "taxPercent", "shipping", "amountPaid", "notes", "terms", "signatureName"
+    "issueDate", "dueDate", "statusMode", "status", "paymentMethod", "amountPaid",
+    "notes", "terms", "signatureName"
   ];
   const currencyInfo = {
     LKR: { symbol: "Rs.", label: "LKR" }, USD: { symbol: "$", label: "USD" },
@@ -124,14 +124,19 @@
 
   function getTotals(items = getItems()) {
     const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-    const discountInput = safeNumber($("discountValue").value);
-    const discount = $("discountType").value === "percentage" ? subtotal * Math.min(discountInput, 100) / 100 : Math.min(discountInput, subtotal);
-    const taxable = Math.max(0, subtotal - discount);
-    const tax = taxable * Math.min(safeNumber($("taxPercent").value), 100) / 100;
-    const shipping = safeNumber($("shipping").value);
-    const total = Math.max(0, taxable + tax + shipping);
+    const total = subtotal;
     const paid = Math.min(safeNumber($("amountPaid").value), total);
-    return { subtotal, discount, taxable, tax, shipping, total, paid, balance: Math.max(0, total - paid) };
+    return { subtotal, total, paid, balance: Math.max(0, total - paid) };
+  }
+
+  function updatePaymentStatus(totals) {
+    const automatic = $("statusMode").value === "automatic";
+    $("status").disabled = automatic;
+    $("statusHint").textContent = automatic ? "Status changes automatically from the paid amount." : "Select the receipt status manually.";
+    if (!automatic) return;
+    if (totals.total > 0 && totals.balance === 0) $("status").value = "Paid";
+    else if (totals.paid > 0) $("status").value = "Partially paid";
+    else $("status").value = "Unpaid";
   }
 
   function setText(id, value) { $(id).textContent = value; }
@@ -141,15 +146,14 @@
     const items = getItems();
     const totals = getTotals(items);
     const code = $("currency").value;
+    updatePaymentStatus(totals);
 
     document.querySelectorAll(".item-row").forEach((row, index) => {
       row.querySelector(".line-amount").textContent = formatMoney(items[index].amount, code);
     });
     [
-      ["editorSubtotal", totals.subtotal], ["editorDiscount", totals.discount], ["editorTax", totals.tax],
-      ["editorShipping", totals.shipping], ["editorTotal", totals.total], ["editorBalance", totals.balance],
-      ["previewSubtotal", totals.subtotal], ["previewDiscount", totals.discount], ["previewTax", totals.tax],
-      ["previewShipping", totals.shipping], ["previewTotal", totals.total], ["previewPaid", totals.paid],
+      ["editorSubtotal", totals.subtotal], ["editorTotal", totals.total], ["editorPaid", totals.paid], ["editorBalance", totals.balance],
+      ["previewSubtotal", totals.subtotal], ["previewTotal", totals.total], ["previewPaid", totals.paid],
       ["previewBalance", totals.balance]
     ].forEach(([id, value]) => setText(id, formatMoney(value, code)));
 
@@ -170,10 +174,6 @@
     const badge = $("previewStatus");
     badge.textContent = status;
     badge.className = `status-badge ${status.toLowerCase().replaceAll(" ", "-")}`;
-    toggleRow("previewDiscountRow", totals.discount > 0);
-    toggleRow("previewTaxRow", totals.tax > 0);
-    toggleRow("previewShippingRow", totals.shipping > 0);
-    toggleRow("previewPaidRow", totals.paid > 0);
     toggleRow("previewNotesSection", Boolean($("notes").value.trim()));
     toggleRow("previewTermsSection", Boolean($("terms").value.trim()));
 
@@ -386,12 +386,9 @@
     $("currency").value = "LKR";
     $("issueDate").value = localDateTime(now);
     $("dueDate").value = addDays(today, 14);
+    $("statusMode").value = "automatic";
     $("status").value = "Unpaid";
     $("paymentMethod").value = "Bank transfer";
-    $("discountType").value = "percentage";
-    $("discountValue").value = "0";
-    $("taxPercent").value = "0";
-    $("shipping").value = "0";
     $("amountPaid").value = "0";
     $("notes").value = "Thank you for your business.";
     $("signatureName").value = keepBusiness.billedBy || "Rohan Ferando";
@@ -535,7 +532,7 @@
       });
 
       let y = doc.lastAutoTable.finalY + 9;
-      const summaryHeight = 51 + (totals.paid > 0 ? 6 : 0);
+      const summaryHeight = 38;
       if (y + summaryHeight > 272) { doc.addPage(); y = 20; }
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
@@ -544,20 +541,18 @@
       doc.setTextColor(23, 36, 56);
       doc.text($("paymentMethod").value, margin, y + 8);
       const labelX = 132;
-      const summaryRows = [["Subtotal", totals.subtotal], ["Discount", totals.discount], ["Tax", totals.tax], ["Shipping", totals.shipping]];
+      const summaryRows = [["Subtotal", totals.subtotal]];
       summaryRows.forEach(([label, value], index) => {
         const rowY = y + index * 6;
         doc.setFont("helvetica", "normal"); doc.setTextColor(102, 116, 134); doc.text(label, labelX, rowY);
         doc.setFont("helvetica", "bold"); doc.setTextColor(23, 36, 56); doc.text(pdfMoney(value, code), right, rowY, { align: "right" });
       });
-      const totalY = y + 27;
+      const totalY = y + 10;
       doc.setDrawColor(190, 202, 215); doc.line(labelX, totalY - 4, right, totalY - 4);
       doc.setFontSize(11); doc.setTextColor(7, 26, 51); doc.text("Total", labelX, totalY); doc.text(pdfMoney(totals.total, code), right, totalY, { align: "right" });
       let balanceY = totalY + 8;
-      if (totals.paid > 0) {
-        doc.setFontSize(8); doc.setTextColor(102, 116, 134); doc.text("Amount paid", labelX, balanceY); doc.setTextColor(23, 36, 56); doc.text(pdfMoney(totals.paid, code), right, balanceY, { align: "right" });
-        balanceY += 8;
-      }
+      doc.setFontSize(8); doc.setTextColor(102, 116, 134); doc.text("Amount paid", labelX, balanceY); doc.setTextColor(23, 36, 56); doc.text(pdfMoney(totals.paid, code), right, balanceY, { align: "right" });
+      balanceY += 8;
       doc.setFillColor(238, 245, 255); doc.roundedRect(labelX - 3, balanceY - 5, right - labelX + 3, 10, 1.5, 1.5, "F");
       doc.setFontSize(9); doc.setTextColor(8, 101, 219); doc.text("Balance due", labelX, balanceY + 1); doc.text(pdfMoney(totals.balance, code), right - 2, balanceY + 1, { align: "right" });
 

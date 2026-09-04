@@ -72,7 +72,9 @@ input { height: 43px; }
 textarea { resize: vertical; line-height: 1.5; }
 input:hover, textarea:hover, select:hover { border-color: #aebfd1; }
 input:focus, textarea:focus, select:focus { background: white; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(20,121,255,.11); }
+select:disabled { color: #617188; background: #eef3f8; cursor: not-allowed; }
 input.invalid, textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(207,63,79,.1); }
+.field-hint { display: block; margin-top: 6px; color: var(--muted); font-size: 10px; line-height: 1.4; }
 .input-action { display: flex; }
 .input-action input { border-radius: 9px 0 0 9px; }
 .input-action button { width: 45px; display: grid; place-items: center; flex: 0 0 auto; color: var(--blue); background: #eef5ff; border: 1px solid #ccd8e5; border-left: 0; border-radius: 0 9px 9px 0; cursor: pointer; }
