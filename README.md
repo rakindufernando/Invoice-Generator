@@ -7,7 +7,7 @@ A responsive browser-based e-receipt generator that creates professional, multi-
 - Default Weerahannadige Family and Bumbi Software Solutions branding
 - Live A4-style e-receipt preview
 - Business logo upload
-- Customer, payment, tax and registration details
+- Customer and payment details
 - Billed-by and E Signature details
 - Current issue date and time with manual editing
 - Dynamic receipt items and automatic totals

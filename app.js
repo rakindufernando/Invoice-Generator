@@ -8,7 +8,7 @@
   const BUMBI_LOGO = "assets/BUMBI_LOGO.svg";
   const $ = id => document.getElementById(id);
   const fieldIds = [
-    "businessName", "billedBy", "businessEmail", "businessPhone", "taxNumber", "businessAddress",
+    "businessName", "billedBy", "businessEmail", "businessPhone", "businessAddress",
     "customerName", "customerEmail", "customerAddress", "invoiceNumber", "currency",
     "issueDate", "dueDate", "statusMode", "status", "paymentMethod", "amountPaid",
     "notes", "terms", "signatureName"
@@ -176,7 +176,7 @@
     ].forEach(([id, value]) => setText(id, formatMoney(value, code)));
 
     setText("previewBusinessName", $("businessName").value.trim() || "Your business");
-    setText("previewBusinessDetails", joinLines([$("businessAddress").value.trim(), $("businessEmail").value.trim(), $("businessPhone").value.trim(), $("taxNumber").value.trim() && `Registration: ${$("taxNumber").value.trim()}`]));
+    setText("previewBusinessDetails", joinLines([$("businessAddress").value.trim(), $("businessEmail").value.trim(), $("businessPhone").value.trim()]));
     setText("previewBilledBy", $("billedBy").value.trim() || "Not specified");
     setText("previewCustomerName", $("customerName").value.trim() || "Customer name");
     setText("previewCustomerDetails", joinLines([$("customerAddress").value.trim(), $("customerEmail").value.trim()]));
@@ -389,7 +389,7 @@
     const today = isoDate(now);
     const keepBusiness = {
       businessName: $("businessName").value || "WEERAHANNADIGE FAMILY", billedBy: $("billedBy").value || "Rohan Ferando", businessEmail: $("businessEmail").value,
-      businessPhone: $("businessPhone").value, taxNumber: $("taxNumber").value,
+      businessPhone: $("businessPhone").value,
       businessAddress: $("businessAddress").value, logoData
     };
     fieldIds.forEach(id => { $(id).value = ""; });
@@ -526,7 +526,7 @@
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(90, 105, 124);
-      const businessLines = doc.splitTextToSize(joinLines([$("businessAddress").value.trim(), $("businessEmail").value.trim(), $("businessPhone").value.trim(), $("taxNumber").value.trim() && `Registration: ${$("taxNumber").value.trim()}`]), 80);
+      const businessLines = doc.splitTextToSize(joinLines([$("businessAddress").value.trim(), $("businessEmail").value.trim(), $("businessPhone").value.trim()]), 80);
       doc.text(businessLines, leftX, 25);
 
       doc.setTextColor(7, 26, 51);
