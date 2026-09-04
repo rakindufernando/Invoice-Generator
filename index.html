@@ -70,7 +70,7 @@
           <legend><span>3</span> Items</legend>
           <div class="items-head" aria-hidden="true"><span>Description</span><span>Qty</span><span>Rate</span><span>Amount</span><span></span></div>
           <div id="itemsList"></div>
-          <button class="add-item" id="addItemBtn" type="button"><span>+</span> Add item</button>
+          <div class="item-actions"><button class="add-item" id="addItemBtn" type="button"><span>+</span> Add item</button><button class="clear-items" id="clearItemsBtn" type="button">Clear all items</button></div>
         </fieldset>
 
         <fieldset class="form-section">
@@ -78,6 +78,7 @@
           <div class="field-grid two-columns">
             <label class="field"><span>Amount paid</span><input id="amountPaid" type="number" min="0" step="0.01" value="0"></label>
           </div>
+          <div class="payment-actions"><button class="button button-secondary" id="markPaidBtn" type="button">Mark full amount paid</button><button class="text-button" id="clearPaymentBtn" type="button">Clear payment</button></div>
           <div class="editor-totals">
             <p><span>Subtotal</span><strong id="editorSubtotal">Rs. 0.00</strong></p><p class="grand-total"><span>Total</span><strong id="editorTotal">Rs. 0.00</strong></p><p><span>Amount paid</span><strong id="editorPaid">Rs. 0.00</strong></p><p class="balance"><span>Balance due</span><strong id="editorBalance">Rs. 0.00</strong></p>
           </div>
@@ -90,7 +91,7 @@
       </form>
 
       <div class="data-actions">
-        <div><button class="button button-secondary" id="saveInvoiceBtn" type="button">Save receipt</button><button class="button button-secondary" id="savedInvoicesBtn" type="button">Saved receipts <span id="savedCount">0</span></button></div>
+        <div><button class="button button-secondary" id="saveInvoiceBtn" type="button">Save receipt</button><button class="button button-secondary" id="duplicateReceiptBtn" type="button">Duplicate receipt</button><button class="button button-secondary" id="savedInvoicesBtn" type="button">Saved receipts <span id="savedCount">0</span></button></div>
         <div><button class="text-button" id="importBtn" type="button">Import JSON</button><button class="text-button" id="exportBtn" type="button">Export JSON</button><input id="importInput" type="file" accept="application/json" hidden></div>
       </div>
     </section>

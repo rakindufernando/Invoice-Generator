@@ -54,12 +54,30 @@
     toastTimer = setTimeout(() => { toast.className = "toast"; }, 2800);
   }
 
-  function nextInvoiceNumber(increment = false) {
-    let counter = Number(localStorage.getItem(COUNTER_KEY) || 1);
+  function nextInvoiceNumber() {
+    let counter = 1;
+    try { counter = Number(localStorage.getItem(COUNTER_KEY) || 1); } catch { /* Use an in-memory fallback. */ }
     const now = new Date();
-    const number = `REC-${now.getFullYear()}-${String(counter).padStart(4, "0")}`;
-    if (increment) localStorage.setItem(COUNTER_KEY, String(counter + 1));
+    const usedNumbers = new Set(savedInvoices().map(receipt => receipt.invoiceNumber));
+    let number = `REC-${now.getFullYear()}-${String(counter).padStart(4, "0")}`;
+    while (usedNumbers.has(number)) {
+      counter += 1;
+      number = `REC-${now.getFullYear()}-${String(counter).padStart(4, "0")}`;
+    }
+    try { localStorage.setItem(COUNTER_KEY, String(counter + 1)); } catch { /* Number generation still works without storage. */ }
     return number;
+  }
+
+  function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
 
   function createItemRow(item = { description: "", quantity: 1, rate: 0 }) {
@@ -351,12 +369,7 @@
 
   function exportJson() {
     const blob = new Blob([JSON.stringify(collectData(), null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${safeFilename($("invoiceNumber").value)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, `${safeFilename($("invoiceNumber").value)}.json`);
     showToast("Receipt data exported.");
   }
 
@@ -382,7 +395,7 @@
     fieldIds.forEach(id => { $(id).value = ""; });
     Object.entries(keepBusiness).forEach(([id, value]) => { if (id !== "logoData") $(id).value = value; });
     logoData = keepBusiness.logoData;
-    $("invoiceNumber").value = nextInvoiceNumber(true);
+    $("invoiceNumber").value = nextInvoiceNumber();
     $("currency").value = "LKR";
     $("issueDate").value = localDateTime(now);
     $("dueDate").value = addDays(today, 14);
@@ -396,6 +409,43 @@
     createItemRow();
     updateLogoViews();
     handleChange();
+  }
+
+  function duplicateReceipt() {
+    const now = new Date();
+    const today = isoDate(now);
+    $("invoiceNumber").value = nextInvoiceNumber();
+    $("issueDate").value = localDateTime(now);
+    $("dueDate").value = addDays(today, 14);
+    $("statusMode").value = "automatic";
+    $("status").value = "Unpaid";
+    $("amountPaid").value = "0";
+    handleChange();
+    $("invoiceNumber").focus();
+    showToast("Receipt duplicated with a new number and issue time.");
+  }
+
+  function markFullAmountPaid() {
+    const totals = getTotals();
+    $("amountPaid").value = String(totals.total);
+    if ($("statusMode").value === "manual") $("status").value = "Paid";
+    handleChange();
+    showToast("The full receipt amount is marked as paid.");
+  }
+
+  function clearPayment() {
+    $("amountPaid").value = "0";
+    if ($("statusMode").value === "manual") $("status").value = "Unpaid";
+    handleChange();
+  }
+
+  function clearAllItems() {
+    if (!confirm("Clear all receipt items?")) return;
+    $("itemsList").replaceChildren();
+    createItemRow();
+    handleChange();
+    $("itemsList").querySelector(".item-description").focus();
+    showToast("All receipt items cleared.");
   }
 
   function imageToPngData(source, maxWidth = 900, maxHeight = 500) {
@@ -580,7 +630,7 @@
       doc.text($("signatureName").value.trim() || $("billedBy").value.trim() || "Rohan Ferando", (signatureLeft + signatureRight) / 2, notesY + 20, { align: "center" });
       addPdfFooter(doc, pdfBumbiLogo);
       doc.setProperties({ title: `E-Receipt ${$("invoiceNumber").value}`, subject: `E-Receipt for ${$("customerName").value}`, author: $("businessName").value, creator: "InvoiceFlow" });
-      doc.save(`${safeFilename($("invoiceNumber").value)}-${safeFilename($("customerName").value)}.pdf`);
+      triggerDownload(doc.output("blob"), `${safeFilename($("invoiceNumber").value)}-${safeFilename($("customerName").value)}.pdf`);
       showToast("Your professional e-receipt PDF is ready.");
     } catch (error) {
       console.error(error);
@@ -599,26 +649,31 @@
     $("signatureName").value = "Rohan Ferando";
     $("issueDate").value = localDateTime(now);
     $("dueDate").value = addDays(today, 14);
-    $("invoiceNumber").value = nextInvoiceNumber(false);
     $("notes").value = "Thank you for your business.";
     createItemRow({ description: "", quantity: 1, rate: 0 });
+    let draftLoaded = false;
     try {
       const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
-      if (draft) applyData(draft);
+      if (draft) { applyData(draft); draftLoaded = true; }
     } catch { /* Start with a fresh receipt if stored data is invalid. */ }
+    if (!draftLoaded) $("invoiceNumber").value = nextInvoiceNumber();
     updateLogoViews();
     updatePreview();
     refreshSavedCount();
 
     fieldIds.forEach(id => { $(id).addEventListener("input", handleChange); $(id).addEventListener("change", handleChange); });
     $("addItemBtn").addEventListener("click", () => { createItemRow(); handleChange(); $("itemsList").lastElementChild.querySelector("input").focus(); });
-    $("generateNumberBtn").addEventListener("click", () => { $("invoiceNumber").value = nextInvoiceNumber(true); handleChange(); });
+    $("clearItemsBtn").addEventListener("click", clearAllItems);
+    $("generateNumberBtn").addEventListener("click", () => { $("invoiceNumber").value = nextInvoiceNumber(); handleChange(); showToast("A new receipt number was generated."); });
     $("logoInput").addEventListener("change", event => { loadLogo(event.target.files[0]); event.target.value = ""; });
     $("removeLogoBtn").addEventListener("click", () => { logoData = DEFAULT_LOGO; updateLogoViews(); handleChange(); showToast("Default family logo restored."); });
     $("downloadPdfBtn").addEventListener("click", downloadPdf);
     $("printBtn").addEventListener("click", () => { updatePreview(); window.print(); });
     $("newInvoiceBtn").addEventListener("click", () => newInvoice(true));
     $("saveInvoiceBtn").addEventListener("click", saveInvoice);
+    $("duplicateReceiptBtn").addEventListener("click", duplicateReceipt);
+    $("markPaidBtn").addEventListener("click", markFullAmountPaid);
+    $("clearPaymentBtn").addEventListener("click", clearPayment);
     $("savedInvoicesBtn").addEventListener("click", () => { renderSavedInvoices(); $("savedModal").hidden = false; });
     $("closeSavedBtn").addEventListener("click", closeSavedModal);
     $("savedModal").addEventListener("click", event => { if (event.target === $("savedModal")) closeSavedModal(); });

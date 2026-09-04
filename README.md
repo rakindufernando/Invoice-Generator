@@ -13,8 +13,12 @@ A responsive browser-based e-receipt generator that creates professional, multi-
 - Dynamic receipt items and automatic totals
 - Manual or payment-based automatic receipt status
 - Paid amount and balance due tracking
+- One-click full-payment and payment-clearing actions
+- Receipt duplication with a new number and timestamp
+- Clear-all item control with confirmation
 - Draft autosave and saved receipt management in the browser
 - JSON import and export for backups
+- Reliable browser downloads for JSON and PDF files
 - Print-ready layout
 - Professional PDF export with repeating table headers, page numbers and metadata
 - Responsive desktop, tablet and mobile interface
