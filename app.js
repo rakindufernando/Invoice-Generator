@@ -1,15 +1,17 @@
 (() => {
   "use strict";
 
-  const DRAFT_KEY = "invoiceflow_draft_v2";
-  const SAVED_KEY = "invoiceflow_saved_v2";
-  const COUNTER_KEY = "invoiceflow_counter_v2";
+  const DRAFT_KEY = "invoiceflow_draft_v3";
+  const SAVED_KEY = "invoiceflow_saved_v3";
+  const COUNTER_KEY = "invoiceflow_counter_v3";
+  const DEFAULT_LOGO = "assets/W_Family_Logo_Enhanced.svg";
+  const BUMBI_LOGO = "assets/BUMBI_LOGO.svg";
   const $ = id => document.getElementById(id);
   const fieldIds = [
-    "businessName", "businessEmail", "businessPhone", "taxNumber", "businessAddress",
+    "businessName", "billedBy", "businessEmail", "businessPhone", "taxNumber", "businessAddress",
     "customerName", "customerEmail", "customerAddress", "invoiceNumber", "currency",
     "issueDate", "dueDate", "status", "paymentMethod", "discountType", "discountValue",
-    "taxPercent", "shipping", "amountPaid", "notes", "terms"
+    "taxPercent", "shipping", "amountPaid", "notes", "terms", "signatureName"
   ];
   const currencyInfo = {
     LKR: { symbol: "Rs.", label: "LKR" }, USD: { symbol: "$", label: "USD" },
@@ -17,18 +19,24 @@
     AUD: { symbol: "A$", label: "AUD" }, CAD: { symbol: "C$", label: "CAD" },
     INR: { symbol: "₹", label: "INR" }
   };
-  let logoData = "";
+  let logoData = DEFAULT_LOGO;
   let autosaveTimer;
   let toastTimer;
 
   const safeNumber = value => Math.max(0, Number(value) || 0);
-  const isoDate = date => date.toISOString().slice(0, 10);
+  const isoDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const localDateTime = (date = new Date()) => {
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  };
   const addDays = (dateString, days) => {
     const date = new Date(`${dateString}T12:00:00`);
     date.setDate(date.getDate() + days);
     return isoDate(date);
   };
-  const formatDate = value => value ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T12:00:00`)) : "Not set";
+  const parseLocalDate = value => new Date(value.length === 10 ? `${value}T12:00:00` : value);
+  const formatDate = value => value ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(parseLocalDate(value)) : "Not set";
+  const formatDateTime = value => value ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(parseLocalDate(value)) : "Not set";
   const formatMoney = (value, code = $("currency").value) => {
     const info = currencyInfo[code] || { symbol: code, label: code };
     const number = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safeNumber(value));
@@ -36,7 +44,7 @@
   };
   const pdfMoney = (value, code) => `${currencyInfo[code]?.label || code} ${new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safeNumber(value))}`;
   const joinLines = values => values.filter(Boolean).join("\n");
-  const safeFilename = value => (value || "invoice").replace(/[^a-z0-9_-]+/gi, "-").replace(/^-|-$/g, "").slice(0, 70) || "invoice";
+  const safeFilename = value => (value || "receipt").replace(/[^a-z0-9_-]+/gi, "-").replace(/^-|-$/g, "").slice(0, 70) || "receipt";
 
   function showToast(message, type = "success") {
     clearTimeout(toastTimer);
@@ -49,7 +57,7 @@
   function nextInvoiceNumber(increment = false) {
     let counter = Number(localStorage.getItem(COUNTER_KEY) || 1);
     const now = new Date();
-    const number = `INV-${now.getFullYear()}-${String(counter).padStart(4, "0")}`;
+    const number = `REC-${now.getFullYear()}-${String(counter).padStart(4, "0")}`;
     if (increment) localStorage.setItem(COUNTER_KEY, String(counter + 1));
     return number;
   }
@@ -147,14 +155,16 @@
 
     setText("previewBusinessName", $("businessName").value.trim() || "Your business");
     setText("previewBusinessDetails", joinLines([$("businessAddress").value.trim(), $("businessEmail").value.trim(), $("businessPhone").value.trim(), $("taxNumber").value.trim() && `Registration: ${$("taxNumber").value.trim()}`]));
+    setText("previewBilledBy", $("billedBy").value.trim() || "Not specified");
     setText("previewCustomerName", $("customerName").value.trim() || "Customer name");
     setText("previewCustomerDetails", joinLines([$("customerAddress").value.trim(), $("customerEmail").value.trim()]));
     setText("previewInvoiceNumber", $("invoiceNumber").value.trim() || "Not set");
-    setText("previewIssueDate", formatDate($("issueDate").value));
+    setText("previewIssueDate", formatDateTime($("issueDate").value));
     setText("previewDueDate", formatDate($("dueDate").value));
     setText("previewPaymentMethod", $("paymentMethod").value);
     setText("previewNotes", $("notes").value.trim());
     setText("previewTerms", $("terms").value.trim());
+    setText("previewSignatureName", $("signatureName").value.trim() || $("billedBy").value.trim() || "Authorized issuer");
 
     const status = $("status").value;
     const badge = $("previewStatus");
@@ -198,9 +208,9 @@
   }
 
   function applyData(data) {
-    if (!data || typeof data !== "object") throw new Error("Invalid invoice data");
+    if (!data || typeof data !== "object") throw new Error("Invalid receipt data");
     fieldIds.forEach(id => { if (data[id] !== undefined) $(id).value = String(data[id]); });
-    logoData = typeof data.logoData === "string" ? data.logoData : "";
+    logoData = typeof data.logoData === "string" && data.logoData ? data.logoData : DEFAULT_LOGO;
     updateLogoViews();
     $("itemsList").replaceChildren();
     const items = Array.isArray(data.items) && data.items.length ? data.items.slice(0, 100) : [{ description: "", quantity: 1, rate: 0 }];
@@ -231,11 +241,11 @@
 
   function updateLogoViews() {
     [$("logoThumb"), $("previewLogo")].forEach(image => {
-      image.src = logoData || "";
-      image.hidden = !logoData;
+      image.src = logoData;
+      image.hidden = false;
     });
-    $("logoUploadContent").hidden = Boolean(logoData);
-    $("removeLogoBtn").hidden = !logoData;
+    $("logoUploadContent").hidden = true;
+    $("removeLogoBtn").hidden = logoData === DEFAULT_LOGO;
   }
 
   function loadLogo(file) {
@@ -256,7 +266,7 @@
     const invalid = required.filter(id => !$(id).value.trim());
     if ($("businessEmail").value && !$("businessEmail").validity.valid) invalid.push("businessEmail");
     if ($("customerEmail").value && !$("customerEmail").validity.valid) invalid.push("customerEmail");
-    if ($("dueDate").value && $("issueDate").value && $("dueDate").value < $("issueDate").value) invalid.push("dueDate");
+    if ($("dueDate").value && $("issueDate").value && $("dueDate").value < $("issueDate").value.slice(0, 10)) invalid.push("dueDate");
     const validItems = getItems().filter(item => item.description && item.quantity > 0);
     if (!validItems.length) {
       $("itemsList").querySelector(".item-description")?.classList.add("invalid");
@@ -266,7 +276,7 @@
     if (invalid.length) {
       [...new Set(invalid)].forEach(id => $(id).classList.add("invalid"));
       $(invalid[0]).focus();
-      showToast(invalid.includes("dueDate") ? "The due date cannot be before the issue date." : "Please complete the highlighted invoice details.", "error");
+      showToast(invalid.includes("dueDate") ? "The due date cannot be before the issue date." : "Please complete the highlighted receipt details.", "error");
       return false;
     }
     return true;
@@ -289,8 +299,8 @@
       localStorage.setItem(SAVED_KEY, JSON.stringify(invoices.slice(0, 50)));
       localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
       refreshSavedCount();
-      showToast(index >= 0 ? "Saved invoice updated." : "Invoice saved in this browser.");
-    } catch { showToast("The invoice could not be saved. Try removing a large logo.", "error"); }
+      showToast(index >= 0 ? "Saved receipt updated." : "Receipt saved in this browser.");
+    } catch { showToast("The receipt could not be saved. Try using the default logo.", "error"); }
   }
 
   function renderSavedInvoices() {
@@ -300,7 +310,7 @@
     if (!invoices.length) {
       const empty = document.createElement("div");
       empty.className = "empty-saved";
-      empty.textContent = "No saved invoices yet.";
+      empty.textContent = "No saved receipts yet.";
       list.appendChild(empty);
       return;
     }
@@ -309,7 +319,7 @@
       card.className = "saved-card";
       const info = document.createElement("div");
       const title = document.createElement("strong");
-      title.textContent = invoice.invoiceNumber || "Untitled invoice";
+      title.textContent = invoice.invoiceNumber || "Untitled receipt";
       const meta = document.createElement("small");
       meta.textContent = `${invoice.customerName || "No customer"} · ${formatDate(invoice.issueDate)}`;
       info.append(title, meta);
@@ -317,19 +327,19 @@
       const load = document.createElement("button");
       load.type = "button";
       load.textContent = "Load";
-      load.addEventListener("click", () => { applyData(invoice); closeSavedModal(); showToast("Invoice loaded."); });
+      load.addEventListener("click", () => { applyData(invoice); closeSavedModal(); showToast("Receipt loaded."); });
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "delete-saved";
       remove.textContent = "Delete";
       remove.addEventListener("click", () => {
-        if (!confirm(`Delete ${invoice.invoiceNumber || "this invoice"}?`)) return;
+        if (!confirm(`Delete ${invoice.invoiceNumber || "this receipt"}?`)) return;
         const updated = savedInvoices();
         updated.splice(index, 1);
         localStorage.setItem(SAVED_KEY, JSON.stringify(updated));
         refreshSavedCount();
         renderSavedInvoices();
-        showToast("Saved invoice deleted.");
+        showToast("Saved receipt deleted.");
       });
       actions.append(load, remove);
       card.append(info, actions);
@@ -347,24 +357,25 @@
     link.download = `${safeFilename($("invoiceNumber").value)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    showToast("Invoice data exported.");
+    showToast("Receipt data exported.");
   }
 
   function importJson(file) {
     if (!file || file.size > 5 * 1024 * 1024) { showToast("Select a valid JSON file under 5 MB.", "error"); return; }
     const reader = new FileReader();
     reader.onload = () => {
-      try { applyData(JSON.parse(String(reader.result))); showToast("Invoice data imported."); }
-      catch { showToast("This file does not contain valid invoice data.", "error"); }
+      try { applyData(JSON.parse(String(reader.result))); showToast("Receipt data imported."); }
+      catch { showToast("This file does not contain valid receipt data.", "error"); }
     };
     reader.readAsText(file);
   }
 
   function newInvoice(confirmFirst = true) {
-    if (confirmFirst && !confirm("Start a new invoice? Your autosaved draft will be replaced.")) return;
-    const today = isoDate(new Date());
+    if (confirmFirst && !confirm("Start a new receipt? Your autosaved draft will be replaced.")) return;
+    const now = new Date();
+    const today = isoDate(now);
     const keepBusiness = {
-      businessName: $("businessName").value, businessEmail: $("businessEmail").value,
+      businessName: $("businessName").value || "WEERAHANNADIGE FAMILY", billedBy: $("billedBy").value || "Rohan Ferando", businessEmail: $("businessEmail").value,
       businessPhone: $("businessPhone").value, taxNumber: $("taxNumber").value,
       businessAddress: $("businessAddress").value, logoData
     };
@@ -373,7 +384,7 @@
     logoData = keepBusiness.logoData;
     $("invoiceNumber").value = nextInvoiceNumber(true);
     $("currency").value = "LKR";
-    $("issueDate").value = today;
+    $("issueDate").value = localDateTime(now);
     $("dueDate").value = addDays(today, 14);
     $("status").value = "Unpaid";
     $("paymentMethod").value = "Bank transfer";
@@ -383,13 +394,33 @@
     $("shipping").value = "0";
     $("amountPaid").value = "0";
     $("notes").value = "Thank you for your business.";
+    $("signatureName").value = keepBusiness.billedBy || "Rohan Ferando";
     $("itemsList").replaceChildren();
     createItemRow();
     updateLogoViews();
     handleChange();
   }
 
-  function addPdfFooter(doc) {
+  function imageToPngData(source, maxWidth = 900, maxHeight = 500) {
+    return new Promise(resolve => {
+      if (!source) { resolve(""); return; }
+      const image = new Image();
+      image.onload = () => {
+        try {
+          const scale = Math.min(maxWidth / image.naturalWidth, maxHeight / image.naturalHeight, 1);
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/png"));
+        } catch { resolve(""); }
+      };
+      image.onerror = () => resolve("");
+      image.src = source;
+    });
+  }
+
+  function addPdfFooter(doc, bumbiLogo) {
     const pages = doc.internal.getNumberOfPages();
     for (let page = 1; page <= pages; page += 1) {
       doc.setPage(page);
@@ -397,15 +428,16 @@
       const height = doc.internal.pageSize.getHeight();
       doc.setDrawColor(226, 232, 239);
       doc.line(14, height - 15, width - 14, height - 15);
-      doc.setTextColor(120, 133, 150);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.text("Generated with InvoiceFlow", 14, height - 9);
+      if (bumbiLogo) doc.addImage(bumbiLogo, "PNG", 14, height - 13, 20, 7, undefined, "FAST");
+      doc.setTextColor(83, 99, 119);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.text("POWERED BY BUMBI SOFTWARE SOLUTIONS", bumbiLogo ? 38 : 14, height - 9);
       doc.text(`Page ${page} of ${pages}`, width - 14, height - 9, { align: "right" });
     }
   }
 
-  function downloadPdf() {
+  async function downloadPdf() {
     if (!validateInvoice()) return;
     if (!window.jspdf || typeof window.jspdf.jsPDF !== "function") {
       showToast("The PDF library did not load. Check your internet connection and try again.", "error");
@@ -416,6 +448,10 @@
     button.disabled = true;
     button.textContent = "Creating PDF...";
     try {
+      const [pdfLogo, pdfBumbiLogo] = await Promise.all([
+        imageToPngData(logoData, 700, 700),
+        imageToPngData(BUMBI_LOGO, 1000, 400)
+      ]);
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -430,10 +466,9 @@
       doc.setFillColor(20, 121, 255);
       doc.rect(0, 0, 72, 7, "F");
       let leftX = margin;
-      if (logoData) {
+      if (pdfLogo) {
         try {
-          const format = logoData.includes("image/png") ? "PNG" : "JPEG";
-          doc.addImage(logoData, format, margin, 16, 24, 20, undefined, "FAST");
+          doc.addImage(pdfLogo, "PNG", margin, 13, 24, 24, undefined, "FAST");
           leftX = 42;
         } catch { /* Continue without the logo if the browser cannot decode it. */ }
       }
@@ -449,8 +484,8 @@
 
       doc.setTextColor(7, 26, 51);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(25);
-      doc.text("INVOICE", right, 20, { align: "right" });
+      doc.setFontSize(22);
+      doc.text("E-RECEIPT", right, 20, { align: "right" });
       doc.setFontSize(9);
       doc.setTextColor(20, 121, 255);
       doc.text($("status").value.toUpperCase(), right, 27, { align: "right" });
@@ -460,17 +495,26 @@
       doc.setTextColor(128, 140, 156);
       doc.setFontSize(7.5);
       doc.setFont("helvetica", "bold");
-      doc.text("BILL TO", margin, 51);
+      doc.text("BILLED TO", margin, 51);
       doc.setTextColor(23, 36, 56);
       doc.setFontSize(10.5);
       doc.text($("customerName").value.trim(), margin, 58);
       doc.setTextColor(90, 105, 124);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
-      doc.text(doc.splitTextToSize(joinLines([$("customerAddress").value.trim(), $("customerEmail").value.trim()]), 88), margin, 64);
+      const customerLines = doc.splitTextToSize(joinLines([$("customerAddress").value.trim(), $("customerEmail").value.trim()]), 88);
+      doc.text(customerLines, margin, 64);
+      const billedByY = Math.max(74, 64 + customerLines.length * 4 + 3);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(128, 140, 156);
+      doc.setFontSize(7.5);
+      doc.text("BILLED BY", margin, billedByY);
+      doc.setTextColor(23, 36, 56);
+      doc.setFontSize(9);
+      doc.text($("billedBy").value.trim() || "Rohan Ferando", margin, billedByY + 5);
 
       const metaX = 130;
-      const meta = [["Invoice number", $("invoiceNumber").value.trim()], ["Issue date", formatDate($("issueDate").value)], ["Due date", formatDate($("dueDate").value)]];
+      const meta = [["Receipt number", $("invoiceNumber").value.trim()], ["Issue date and time", formatDateTime($("issueDate").value)], ["Due date", formatDate($("dueDate").value)]];
       meta.forEach(([label, value], index) => {
         const y = 50 + index * 7;
         doc.setFont("helvetica", "normal"); doc.setTextColor(112, 126, 144); doc.text(label, metaX, y);
@@ -478,7 +522,7 @@
       });
 
       doc.autoTable({
-        startY: 82,
+        startY: Math.max(87, billedByY + 10),
         margin: { left: margin, right: margin, bottom: 23 },
         head: [["Description", "Qty", `Rate (${code})`, `Amount (${code})`]],
         body: items.map(item => [item.description, String(item.quantity), pdfMoney(item.rate, code), pdfMoney(item.amount, code)]),
@@ -527,13 +571,25 @@
         doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(74, 89, 109); doc.text(lines, margin, notesY + 6);
         notesY += needed;
       });
-      addPdfFooter(doc);
-      doc.setProperties({ title: `Invoice ${$("invoiceNumber").value}`, subject: `Invoice for ${$("customerName").value}`, author: $("businessName").value, creator: "InvoiceFlow" });
+      if (notesY + 22 > 270) { doc.addPage(); notesY = 24; }
+      const signatureRight = right;
+      const signatureLeft = right - 58;
+      doc.setDrawColor(174, 185, 198);
+      doc.line(signatureLeft, notesY + 8, signatureRight, notesY + 8);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(128, 140, 156);
+      doc.text("E SIGNATURE", (signatureLeft + signatureRight) / 2, notesY + 14, { align: "center" });
+      doc.setFontSize(9);
+      doc.setTextColor(7, 26, 51);
+      doc.text($("signatureName").value.trim() || $("billedBy").value.trim() || "Rohan Ferando", (signatureLeft + signatureRight) / 2, notesY + 20, { align: "center" });
+      addPdfFooter(doc, pdfBumbiLogo);
+      doc.setProperties({ title: `E-Receipt ${$("invoiceNumber").value}`, subject: `E-Receipt for ${$("customerName").value}`, author: $("businessName").value, creator: "InvoiceFlow" });
       doc.save(`${safeFilename($("invoiceNumber").value)}-${safeFilename($("customerName").value)}.pdf`);
-      showToast("Your professional PDF is ready.");
+      showToast("Your professional e-receipt PDF is ready.");
     } catch (error) {
       console.error(error);
-      showToast("The PDF could not be created. Please try again.", "error");
+      showToast("The e-receipt PDF could not be created. Please try again.", "error");
     } finally {
       button.disabled = false;
       button.innerHTML = original;
@@ -541,8 +597,12 @@
   }
 
   function initialise() {
-    const today = isoDate(new Date());
-    $("issueDate").value = today;
+    const now = new Date();
+    const today = isoDate(now);
+    $("businessName").value = "WEERAHANNADIGE FAMILY";
+    $("billedBy").value = "Rohan Ferando";
+    $("signatureName").value = "Rohan Ferando";
+    $("issueDate").value = localDateTime(now);
     $("dueDate").value = addDays(today, 14);
     $("invoiceNumber").value = nextInvoiceNumber(false);
     $("notes").value = "Thank you for your business.";
@@ -550,7 +610,8 @@
     try {
       const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
       if (draft) applyData(draft);
-    } catch { /* Start with a fresh invoice if stored data is invalid. */ }
+    } catch { /* Start with a fresh receipt if stored data is invalid. */ }
+    updateLogoViews();
     updatePreview();
     refreshSavedCount();
 
@@ -558,7 +619,7 @@
     $("addItemBtn").addEventListener("click", () => { createItemRow(); handleChange(); $("itemsList").lastElementChild.querySelector("input").focus(); });
     $("generateNumberBtn").addEventListener("click", () => { $("invoiceNumber").value = nextInvoiceNumber(true); handleChange(); });
     $("logoInput").addEventListener("change", event => { loadLogo(event.target.files[0]); event.target.value = ""; });
-    $("removeLogoBtn").addEventListener("click", () => { logoData = ""; updateLogoViews(); handleChange(); });
+    $("removeLogoBtn").addEventListener("click", () => { logoData = DEFAULT_LOGO; updateLogoViews(); handleChange(); showToast("Default family logo restored."); });
     $("downloadPdfBtn").addEventListener("click", downloadPdf);
     $("printBtn").addEventListener("click", () => { updatePreview(); window.print(); });
     $("newInvoiceBtn").addEventListener("click", () => newInvoice(true));

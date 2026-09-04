@@ -119,7 +119,7 @@ input.invalid, textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0
 .invoice-brand h2 { margin: 0 0 7px; color: var(--navy); font: 800 clamp(17px, 2vw, 23px)/1.2 Manrope, sans-serif; overflow-wrap: anywhere; }
 .invoice-brand p, .invoice-meta p { margin: 0; color: #6d798a; font-size: 10px; line-height: 1.55; white-space: pre-line; }
 .invoice-title { flex: 0 0 auto; text-align: right; }
-.invoice-title h2 { margin: 0 0 12px; color: #172438; font: 800 clamp(24px, 4vw, 36px)/1 Manrope, sans-serif; letter-spacing: 3px; }
+.invoice-title h2 { margin: 0 0 12px; color: #172438; font: 800 clamp(21px, 3.5vw, 32px)/1 Manrope, sans-serif; letter-spacing: 2px; white-space: nowrap; }
 .status-badge { display: inline-block; padding: 5px 10px; color: #8e550e; background: #fff5df; border-radius: 99px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
 .status-badge.paid { color: #0a704b; background: #e5f8f0; }
 .status-badge.draft { color: #596779; background: #edf1f5; }
@@ -131,6 +131,7 @@ input.invalid, textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0
 .invoice-meta dl > div { margin-bottom: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 10px; }
 .invoice-meta dt { color: #7b8797; }
 .invoice-meta dd { margin: 0; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+.invoice-meta .billed-by-label { margin-top: 16px; }
 .invoice-table-wrap { width: 100%; overflow-x: auto; }
 .invoice-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .invoice-table th { padding: 10px 9px; color: white; background: var(--navy); font-size: 9px; text-align: right; text-transform: uppercase; letter-spacing: .5px; }
@@ -147,7 +148,11 @@ input.invalid, textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0
 .summary-lines .invoice-balance { margin-top: 7px; padding: 9px 10px; color: var(--blue-dark); background: #eef5ff; border-radius: 6px; font-size: 12px; }
 .invoice-notes { margin: 0 0 18px; }
 .invoice-notes p { margin: 0; color: #536175; font-size: 10px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
-.invoice-paper footer { position: absolute; right: 0; bottom: 0; left: 0; padding: 15px; color: #7e8a9a; background: #f8fafc; font-size: 9px; text-align: center; }
+.signature-block { width: 210px; margin: 28px 0 62px auto; padding-top: 12px; border-top: 1px solid #aeb9c6; text-align: center; }
+.signature-block span { display: block; color: #8a96a6; font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; }
+.signature-block strong { display: block; margin-top: 5px; color: var(--navy); font-size: 12px; }
+.invoice-paper footer { position: absolute; right: 0; bottom: 0; left: 0; min-height: 52px; padding: 9px 18px; display: flex; align-items: center; justify-content: center; gap: 11px; color: #5e6e82; background: #f8fafc; border-top: 1px solid #e6ebf1; font-size: 8px; font-weight: 800; letter-spacing: .55px; text-align: center; }
+.invoice-paper footer img { width: 64px; height: 27px; object-fit: contain; }
 
 .modal-backdrop[hidden] { display: none; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; padding: 20px; display: grid; place-items: center; background: rgba(3,15,31,.6); backdrop-filter: blur(4px); }
@@ -203,7 +208,7 @@ input.invalid, textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0
   .invoice-paper { min-height: 760px; padding: 26px 20px 70px; }
   .invoice-header { min-height: 90px; gap: 15px; }
   .invoice-brand img { width: 48px; height: 48px; }
-  .invoice-title h2 { font-size: 22px; letter-spacing: 1.5px; }
+  .invoice-title h2 { font-size: 19px; letter-spacing: 1px; }
   .invoice-meta { margin-block: 24px; grid-template-columns: 1fr 150px; gap: 15px; }
   .invoice-summary { grid-template-columns: 1fr; gap: 20px; }
   .invoice-table th:first-child { width: 40%; }
@@ -217,5 +222,5 @@ input.invalid, textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0
   .app-header, .editor-panel, .preview-toolbar { display: none !important; }
   .workspace { display: block; min-height: 0; }
   .preview-panel { position: static; padding: 0; transform: none; background: white; overflow: visible; }
-  .invoice-paper { position: static; width: 210mm; min-height: 297mm; margin: 0; padding: 16mm; box-shadow: none; }
+  .invoice-paper { position: static; width: 210mm; min-height: 297mm; margin: 0; padding: 16mm 16mm 25mm; box-shadow: none; }
 }

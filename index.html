@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#071a33">
-  <meta name="description" content="Create, save, print and export professional invoices as PDF.">
-  <title>InvoiceFlow | Professional Invoice Generator</title>
+  <meta name="description" content="Create, save, print and export professional e-receipts as PDF.">
+  <title>InvoiceFlow | Professional E-Receipt Generator</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,19 +13,19 @@
   <header class="app-header">
     <a class="brand" href="#" aria-label="InvoiceFlow home">
       <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7zM14 3v5h5M10 12h6M10 16h6"/></svg></span>
-      <span><strong>InvoiceFlow</strong><small>Professional invoice generator</small></span>
+      <span><strong>InvoiceFlow</strong><small>Professional e-receipt generator</small></span>
     </a>
     <div class="header-actions">
       <span class="save-state" id="saveState"><span></span>Saved locally</span>
-      <button class="button button-secondary" id="newInvoiceBtn" type="button">New invoice</button>
+      <button class="button button-secondary" id="newInvoiceBtn" type="button">New receipt</button>
       <button class="button button-primary" id="downloadPdfBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg>Export PDF</button>
     </div>
   </header>
 
   <main class="workspace">
-    <section class="editor-panel" aria-label="Invoice editor">
+    <section class="editor-panel" aria-label="E-receipt editor">
       <div class="panel-heading">
-        <div><span class="eyebrow">Invoice editor</span><h1>Create your invoice</h1></div>
+        <div><span class="eyebrow">E-receipt editor</span><h1>Create your e-receipt</h1></div>
         <button class="icon-button mobile-preview" id="mobilePreviewBtn" type="button" aria-label="Open invoice preview"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></button>
       </div>
 
@@ -34,14 +34,15 @@
           <legend><span>1</span> Business details</legend>
           <div class="logo-field">
             <label class="logo-upload" for="logoInput">
-              <span id="logoUploadContent"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0 4 4m-4-4L8 8M4 15v5h16v-5"/></svg><strong>Upload logo</strong><small>PNG or JPG, up to 2 MB</small></span>
-              <img id="logoThumb" alt="Business logo preview" hidden>
+              <span id="logoUploadContent" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0 4 4m-4-4L8 8M4 15v5h16v-5"/></svg><strong>Upload logo</strong><small>PNG or JPG, up to 2 MB</small></span>
+              <img id="logoThumb" src="assets/W_Family_Logo_Enhanced.svg" alt="Weerahannadige Family logo">
               <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
             </label>
-            <button class="text-button" id="removeLogoBtn" type="button" hidden>Remove logo</button>
+            <button class="text-button" id="removeLogoBtn" type="button" hidden>Use default logo</button>
           </div>
           <div class="field-grid two-columns">
-            <label class="field"><span>Business name <b>*</b></span><input id="businessName" required maxlength="80" placeholder="Your business name"></label>
+            <label class="field"><span>Business name <b>*</b></span><input id="businessName" required maxlength="80" placeholder="Your business name" value="WEERAHANNADIGE FAMILY"></label>
+            <label class="field"><span>Billed by</span><input id="billedBy" maxlength="80" placeholder="Name of issuer" value="Rohan Ferando"></label>
             <label class="field"><span>Email</span><input id="businessEmail" type="email" maxlength="100" placeholder="hello@business.com"></label>
             <label class="field"><span>Phone</span><input id="businessPhone" maxlength="40" placeholder="+94 77 123 4567"></label>
             <label class="field"><span>Tax or registration number</span><input id="taxNumber" maxlength="50" placeholder="Optional"></label>
@@ -50,14 +51,14 @@
         </fieldset>
 
         <fieldset class="form-section">
-          <legend><span>2</span> Customer and invoice</legend>
+          <legend><span>2</span> Customer and receipt</legend>
           <div class="field-grid two-columns">
             <label class="field"><span>Customer name <b>*</b></span><input id="customerName" required maxlength="100" placeholder="Customer or company"></label>
             <label class="field"><span>Customer email</span><input id="customerEmail" type="email" maxlength="100" placeholder="customer@example.com"></label>
             <label class="field full"><span>Billing address</span><textarea id="customerAddress" rows="3" maxlength="300" placeholder="Street, city, country"></textarea></label>
-            <label class="field"><span>Invoice number <b>*</b></span><div class="input-action"><input id="invoiceNumber" required maxlength="40"><button id="generateNumberBtn" type="button" title="Generate invoice number" aria-label="Generate invoice number"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button></div></label>
+            <label class="field"><span>Receipt number <b>*</b></span><div class="input-action"><input id="invoiceNumber" required maxlength="40"><button id="generateNumberBtn" type="button" title="Generate receipt number" aria-label="Generate receipt number"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button></div></label>
             <label class="field"><span>Currency</span><select id="currency"><option value="LKR">LKR, Rs.</option><option value="USD">USD, $</option><option value="EUR">EUR, €</option><option value="GBP">GBP, £</option><option value="AUD">AUD, A$</option><option value="CAD">CAD, C$</option><option value="INR">INR, ₹</option></select></label>
-            <label class="field"><span>Issue date <b>*</b></span><input id="issueDate" type="date" required></label>
+            <label class="field"><span>Issue date and time <b>*</b></span><input id="issueDate" type="datetime-local" required></label>
             <label class="field"><span>Due date</span><input id="dueDate" type="date"></label>
             <label class="field"><span>Payment status</span><select id="status"><option value="Draft">Draft</option><option value="Unpaid" selected>Unpaid</option><option value="Partially paid">Partially paid</option><option value="Paid">Paid</option></select></label>
             <label class="field"><span>Payment method</span><select id="paymentMethod"><option value="Bank transfer">Bank transfer</option><option value="Cash">Cash</option><option value="Card">Card</option><option value="Online payment">Online payment</option><option value="Other">Other</option></select></label>
@@ -87,30 +88,32 @@
 
         <fieldset class="form-section">
           <legend><span>5</span> Notes and terms</legend>
-          <div class="field-grid"><label class="field"><span>Notes</span><textarea id="notes" rows="3" maxlength="600" placeholder="Thank you for your business."></textarea></label><label class="field"><span>Payment terms</span><textarea id="terms" rows="3" maxlength="600" placeholder="Payment details, bank information or late-payment terms"></textarea></label></div>
+          <div class="field-grid"><label class="field"><span>Notes</span><textarea id="notes" rows="3" maxlength="600" placeholder="Thank you for your business."></textarea></label><label class="field"><span>Payment terms</span><textarea id="terms" rows="3" maxlength="600" placeholder="Payment details, bank information or late-payment terms"></textarea></label><label class="field"><span>E Signature name</span><input id="signatureName" maxlength="80" placeholder="Name shown below E Signature" value="Rohan Ferando"></label></div>
         </fieldset>
       </form>
 
       <div class="data-actions">
-        <div><button class="button button-secondary" id="saveInvoiceBtn" type="button">Save invoice</button><button class="button button-secondary" id="savedInvoicesBtn" type="button">Saved invoices <span id="savedCount">0</span></button></div>
+        <div><button class="button button-secondary" id="saveInvoiceBtn" type="button">Save receipt</button><button class="button button-secondary" id="savedInvoicesBtn" type="button">Saved receipts <span id="savedCount">0</span></button></div>
         <div><button class="text-button" id="importBtn" type="button">Import JSON</button><button class="text-button" id="exportBtn" type="button">Export JSON</button><input id="importInput" type="file" accept="application/json" hidden></div>
       </div>
     </section>
 
-    <aside class="preview-panel" id="previewPanel" aria-label="Invoice preview">
-      <div class="preview-toolbar"><span>Live preview</span><div><button class="icon-button" id="printBtn" type="button" aria-label="Print invoice" title="Print invoice"><svg viewBox="0 0 24 24"><path d="M7 8V3h10v5M7 17h10v4H7zM5 17H3v-7h18v7h-2"/></svg></button><button class="icon-button close-preview" id="closePreviewBtn" type="button" aria-label="Close preview"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></div>
+    <aside class="preview-panel" id="previewPanel" aria-label="E-receipt preview">
+      <div class="preview-toolbar"><span>Live preview</span><div><button class="icon-button" id="printBtn" type="button" aria-label="Print receipt" title="Print receipt"><svg viewBox="0 0 24 24"><path d="M7 8V3h10v5M7 17h10v4H7zM5 17H3v-7h18v7h-2"/></svg></button><button class="icon-button close-preview" id="closePreviewBtn" type="button" aria-label="Close preview"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></div>
       <article class="invoice-paper" id="invoicePreview">
         <div class="invoice-accent"></div>
-        <header class="invoice-header"><div class="invoice-brand"><img id="previewLogo" alt="" hidden><div><h2 id="previewBusinessName">Your business</h2><p id="previewBusinessDetails"></p></div></div><div class="invoice-title"><h2>INVOICE</h2><span id="previewStatus" class="status-badge unpaid">Unpaid</span></div></header>
-        <section class="invoice-meta"><div><span>Bill to</span><strong id="previewCustomerName">Customer name</strong><p id="previewCustomerDetails"></p></div><dl><div><dt>Invoice number</dt><dd id="previewInvoiceNumber"></dd></div><div><dt>Issue date</dt><dd id="previewIssueDate"></dd></div><div><dt>Due date</dt><dd id="previewDueDate"></dd></div></dl></section>
+        <header class="invoice-header"><div class="invoice-brand"><img id="previewLogo" src="assets/W_Family_Logo_Enhanced.svg" alt="Weerahannadige Family logo"><div><h2 id="previewBusinessName">WEERAHANNADIGE FAMILY</h2><p id="previewBusinessDetails"></p></div></div><div class="invoice-title"><h2>E-RECEIPT</h2><span id="previewStatus" class="status-badge unpaid">Unpaid</span></div></header>
+        <section class="invoice-meta"><div><span>Billed to</span><strong id="previewCustomerName">Customer name</strong><p id="previewCustomerDetails"></p><span class="billed-by-label">Billed by</span><strong id="previewBilledBy">Rohan Ferando</strong></div><dl><div><dt>Receipt number</dt><dd id="previewInvoiceNumber"></dd></div><div><dt>Issue date and time</dt><dd id="previewIssueDate"></dd></div><div><dt>Due date</dt><dd id="previewDueDate"></dd></div></dl></section>
         <div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody id="previewItems"></tbody></table></div>
         <section class="invoice-summary"><div class="payment-info"><span>Payment method</span><strong id="previewPaymentMethod"></strong></div><div class="summary-lines"><p><span>Subtotal</span><strong id="previewSubtotal"></strong></p><p id="previewDiscountRow"><span>Discount</span><strong id="previewDiscount"></strong></p><p id="previewTaxRow"><span>Tax</span><strong id="previewTax"></strong></p><p id="previewShippingRow"><span>Shipping</span><strong id="previewShipping"></strong></p><p class="invoice-total"><span>Total</span><strong id="previewTotal"></strong></p><p id="previewPaidRow"><span>Paid</span><strong id="previewPaid"></strong></p><p class="invoice-balance"><span>Balance due</span><strong id="previewBalance"></strong></p></div></section>
-        <section class="invoice-notes" id="previewNotesSection"><span>Notes</span><p id="previewNotes"></p></section><section class="invoice-notes" id="previewTermsSection"><span>Terms</span><p id="previewTerms"></p></section><footer>Thank you for your business</footer>
+        <section class="invoice-notes" id="previewNotesSection"><span>Notes</span><p id="previewNotes"></p></section><section class="invoice-notes" id="previewTermsSection"><span>Terms</span><p id="previewTerms"></p></section>
+        <section class="signature-block"><span>E Signature</span><strong id="previewSignatureName">Rohan Ferando</strong></section>
+        <footer><img src="assets/BUMBI_LOGO.svg" alt="Bumbi Software Solutions logo"><span>POWERED BY BUMBI SOFTWARE SOLUTIONS</span></footer>
       </article>
     </aside>
   </main>
 
-  <div class="modal-backdrop" id="savedModal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="savedTitle"><header><div><span class="eyebrow">Local storage</span><h2 id="savedTitle">Saved invoices</h2></div><button class="icon-button" id="closeSavedBtn" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div id="savedList" class="saved-list"></div></section></div>
+  <div class="modal-backdrop" id="savedModal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="savedTitle"><header><div><span class="eyebrow">Local storage</span><h2 id="savedTitle">Saved receipts</h2></div><button class="icon-button" id="closeSavedBtn" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div id="savedList" class="saved-list"></div></section></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
