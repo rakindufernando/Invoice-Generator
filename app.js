@@ -9,7 +9,7 @@
   const $ = id => document.getElementById(id);
   const fieldIds = [
     "businessName", "billedBy", "businessEmail", "businessPhone", "businessAddress",
-    "customerName", "customerEmail", "customerAddress", "invoiceNumber", "currency",
+    "customerName", "customerPhone", "customerAddress", "invoiceNumber", "currency",
     "issueDate", "dueDate", "statusMode", "status", "paymentMethod", "amountPaid",
     "notes", "terms", "signatureName"
   ];
@@ -179,7 +179,7 @@
     setText("previewBusinessDetails", joinLines([$("businessAddress").value.trim(), $("businessEmail").value.trim(), $("businessPhone").value.trim()]));
     setText("previewBilledBy", $("billedBy").value.trim() || "Not specified");
     setText("previewCustomerName", $("customerName").value.trim() || "Customer name");
-    setText("previewCustomerDetails", joinLines([$("customerAddress").value.trim(), $("customerEmail").value.trim()]));
+    setText("previewCustomerDetails", joinLines([$("customerAddress").value.trim(), $("customerPhone").value.trim()]));
     setText("previewInvoiceNumber", $("invoiceNumber").value.trim() || "Not set");
     setText("previewIssueDate", formatDateTime($("issueDate").value));
     setText("previewDueDate", formatDate($("dueDate").value));
@@ -283,7 +283,7 @@
     const required = ["businessName", "customerName", "invoiceNumber", "issueDate"];
     const invalid = required.filter(id => !$(id).value.trim());
     if ($("businessEmail").value && !$("businessEmail").validity.valid) invalid.push("businessEmail");
-    if ($("customerEmail").value && !$("customerEmail").validity.valid) invalid.push("customerEmail");
+    if ($("customerPhone").value && !$("customerPhone").validity.valid) invalid.push("customerPhone");
     if ($("dueDate").value && $("issueDate").value && $("dueDate").value < $("issueDate").value.slice(0, 10)) invalid.push("dueDate");
     const validItems = getItems().filter(item => item.description && item.quantity > 0);
     if (!validItems.length) {
@@ -294,7 +294,12 @@
     if (invalid.length) {
       [...new Set(invalid)].forEach(id => $(id).classList.add("invalid"));
       $(invalid[0]).focus();
-      showToast(invalid.includes("dueDate") ? "The due date cannot be before the issue date." : "Please complete the highlighted receipt details.", "error");
+      const message = invalid.includes("dueDate")
+        ? "The due date cannot be before the issue date."
+        : invalid.includes("customerPhone")
+          ? "Enter a valid customer mobile number."
+          : "Please complete the highlighted receipt details.";
+      showToast(message, "error");
       return false;
     }
     return true;
@@ -549,7 +554,7 @@
       doc.setTextColor(90, 105, 124);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
-      const customerLines = doc.splitTextToSize(joinLines([$("customerAddress").value.trim(), $("customerEmail").value.trim()]), 88);
+      const customerLines = doc.splitTextToSize(joinLines([$("customerAddress").value.trim(), $("customerPhone").value.trim()]), 88);
       doc.text(customerLines, margin, 64);
       const billedByY = Math.max(74, 64 + customerLines.length * 4 + 3);
       doc.setFont("helvetica", "bold");

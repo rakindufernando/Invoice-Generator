@@ -53,7 +53,7 @@
           <legend><span>2</span> Customer and receipt</legend>
           <div class="field-grid two-columns">
             <label class="field"><span>Customer name <b>*</b></span><input id="customerName" required maxlength="100" placeholder="Customer or company"></label>
-            <label class="field"><span>Customer email</span><input id="customerEmail" type="email" maxlength="100" placeholder="customer@example.com"></label>
+            <label class="field"><span>Customer mobile number</span><input id="customerPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="25" pattern="[+0-9()\s-]{7,25}" placeholder="+94 77 123 4567"></label>
             <label class="field full"><span>Billing address</span><textarea id="customerAddress" rows="3" maxlength="300" placeholder="Street, city, country"></textarea></label>
             <label class="field"><span>Receipt number <b>*</b></span><div class="input-action"><input id="invoiceNumber" required maxlength="40"><button id="generateNumberBtn" type="button" title="Generate receipt number" aria-label="Generate receipt number"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button></div></label>
             <label class="field"><span>Currency</span><select id="currency"><option value="LKR">LKR, Rs.</option><option value="USD">USD, $</option><option value="EUR">EUR, €</option><option value="GBP">GBP, £</option><option value="AUD">AUD, A$</option><option value="CAD">CAD, C$</option><option value="INR">INR, ₹</option></select></label>
@@ -115,6 +115,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
-  <script src="app.js?v=20260905-1"></script>
+  <script src="app.js?v=20260905-2"></script>
 </body>
 </html>
